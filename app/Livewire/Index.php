@@ -6,6 +6,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\Attributes\Title;
 use App\Models\Device;
+use App\Models\User;
 
 class Index extends Component
 {
@@ -27,6 +28,8 @@ class Index extends Component
         $this->assignedDevices = Device::where('status', 'assigned')->count();
         $this->availableDevices = Device::where('status', 'available')->count();
         $this->maintenanceDevices = Device::where('status', 'maintenance')->count();
+        $this->usersCount = User::count();
+        $this->staffCount = User::where('role','staff')->count();
 
         // Get 4 most recently added devices
         $this->recentDevices = Device::latest()
@@ -38,10 +41,6 @@ class Index extends Component
             ->latest()
             ->take(4)
             ->get();
-
-        // If you have User and Staff models, uncomment these:
-        // $this->usersCount = \App\Models\User::count();
-        // $this->staffCount = \App\Models\Staff::count();
     }
 
     public function render()

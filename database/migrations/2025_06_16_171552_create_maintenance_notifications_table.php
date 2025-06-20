@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('maintenance_notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('schedule_id')->constrained('maintenance_schedules');
-    $table->enum('type', ['reminder', 'start', 'end', 'cancellation']);
-    $table->dateTime('scheduled_at');
-    $table->boolean('is_sent')->default(false);
-    $table->dateTime('sent_at')->nullable();
+            $table->enum('type', ['reminder', 'start', 'end', 'cancellation']);
+            $table->dateTime('scheduled_at');
+            $table->boolean('is_sent')->default(false);
+            $table->dateTime('sent_at')->nullable();
             $table->timestamps();
         });
     }

@@ -4,6 +4,7 @@ namespace App\Livewire;
 use Livewire\WithPagination;
 use Livewire\Component;
 use App\Models\Category;
+use App\Models\User;
 
 class Device extends Component
 {
@@ -14,6 +15,33 @@ class Device extends Component
     public $statusFilter = '';
     public $sortField = 'name'; // Changed from device_name to name
     public $sortDirection = 'asc';
+    public $assignDeviceId = null;
+    public $userId = null;
+    public $showAssignModal = false;
+
+
+    public function assignDevice($deviceId)
+    {
+        $this->assignDeviceId = $deviceId;
+        $this->showAssignModal = true;
+    }
+
+    public function completeAssignment()
+    {
+        $this->validate([
+            'userId' => 'required|exists:users,id',
+        ]);
+
+        $device =  \App\Models\Device::find($this->assignDeviceId);
+        $device->update([
+            'status' => 'assigned',
+            'assigned_to' => $this->userId,
+            'assigned_at' => now(),
+        ]);
+
+        $this->reset(['assignDeviceId', 'userId', 'showAssignModal']);
+        session()->flash('message', 'Device assigned successfully.');
+    }
 
     public function sortBy($field)
     {
@@ -33,7 +61,7 @@ class Device extends Component
 
     public function render()
     {
-        $devices =  \App\Models\Device::with('category') // Eager load the category relationship
+        $devices =  \App\Models\Device::with('category', 'assignedTo') // Eager load the category relationship
             ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%'.$this->search.'%')
                       ->orWhere('serial_number', 'like', '%'.$this->search.'%');
@@ -52,7 +80,8 @@ class Device extends Component
 
         return view('livewire.device', [
             'devices' => $devices,
-            'categories' => Category::all(), // Get all categories instead of distinct device categories
+            'categories' => Category::all(),
+            'users' => User::all(),
         ]);
     }
 

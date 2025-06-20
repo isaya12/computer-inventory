@@ -116,13 +116,19 @@
                                     <td>{{ $device->brand }}</td>
                                     <td>{{ \Carbon\Carbon::parse($device->purchase_date)->format('d M Y') }}</td>
                                     <td>
-                                        {{ $device->model }}
+                                        {{ $device->status }}
                                     </td>
                                     <td>{{ $device->created_by ?? 'Admin' }}</td>
-                                    <td>
+                                    <td style="display: flex; align-items: center; gap: 10px;">
+                                        @if($device->status != 'assigned')
+                                        <a class="me-3" href="javascript:void(0);" wire:click="assignDevice({{ $device->id }})">
+                                            <i class="fas fa-user-plus" title="Assign to User"></i>
+                                        </a>
+                                     @endif
                                         <a class="me-3" href="javascript:void(0);" wire:click="viewDevice({{ $device->id }})">
                                             <img src="{{ asset('assets/img/icons/eye.svg') }}" alt="View">
-                                        </a> 
+                                        </a>
+
                                         <a class="confirm-text" href="javascript:void(0);"
                                            wire:click="deleteDevice({{ $device->id }})"
                                            onclick="return confirm('Are you sure you want to delete this device?')">
@@ -145,4 +151,32 @@
             </div>
         </div>
     </div>
+    @if ($showAssignModal)
+    <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Device</h5>
+                    <button type="button" wire:click="$set('showAssignModal', false)" class="close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Select User</label>
+                        <select class="form-control" wire:model="userId">
+                            <option value="">Select User</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
+                            @endforeach
+                        </select>
+                        @error('userId') <span class="text-danger">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" wire:click="$set('showAssignModal', false)" class="btn btn-secondary">Cancel</button>
+                    <button type="button" wire:click="completeAssignment" class="btn btn-primary">Assign</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 </div>

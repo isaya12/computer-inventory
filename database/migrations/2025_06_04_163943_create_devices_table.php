@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('image')->nullable();
             $table->date('purchase_date');
-            $table->enum('status', ['available', 'assigned', 'maintenance', 'out_of_service'])
+            $table->enum('status', ['available', 'assigned', 'maintenance','borrow','out_of_service'])
                   ->default('available');
             $table->string('barcode')->nullable()->unique();
             $table->foreignId('assigned_to')->nullable()->constrained('users');

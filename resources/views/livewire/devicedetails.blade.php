@@ -83,7 +83,7 @@
                                             @if($device->assigned_to)
                                             <tr>
                                                 <th>Assigned To</th>
-                                                <td>{{ $device->assignedUser->name }}</td>
+                                                <td>{{ $device->assignedTO->first_name }} {{ $device->assignedTO->last_name }}</td>
                                             </tr>
                                             @endif
                                             @if($device->location_id)
@@ -191,7 +191,7 @@
                                             <option value="">Not Assigned</option>
                                             @foreach($users as $user)
                                                 <option value="{{ $user->id }}" {{ $user->id == $device->assigned_to ? 'selected' : '' }}>
-                                                    {{ $user->name }}
+                                                    {{ $user->first_name }} {{ $user->last_name }}
                                                 </option>
                                             @endforeach
                                         </select>

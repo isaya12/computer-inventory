@@ -36,7 +36,7 @@ class Devicedetails extends Component
 
     public function mount($id)
     {
-        $this->device = Device::with(['category', 'assignedUser', 'location'])->findOrFail($id);
+        $this->device = Device::with(['category', 'assignedTO', 'location'])->findOrFail($id);
         $this->categories = Category::all();
         $this->users = User::all();
         $this->locations = Location::all();

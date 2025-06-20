@@ -11,12 +11,13 @@ class MaintenanceSchedule extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'type', 
         'title',
         'description',
         'start_time',
         'end_time',
         'status',
-        'user_id'
+        'created_by'
     ];
 
     protected $casts = [
