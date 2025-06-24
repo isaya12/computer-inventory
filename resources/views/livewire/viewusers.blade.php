@@ -117,9 +117,6 @@
                                         <a class="me-3" href="javascript:void(0);" wire:click="viewUser({{ $user->id }})">
                                             <img src="{{ asset('assets/img/icons/eye.svg') }}" alt="img" title="View">
                                         </a>
-                                        <a class="me-3" href="">
-                                            <img src="{{ asset('assets/img/icons/edit.svg') }}" alt="img" title="Edit">
-                                        </a>
                                         <a class="me-3" href="javascript:void(0);" wire:click="confirmDelete({{ $user->id }})">
                                             <img src="{{ asset('assets/img/icons/delete.svg') }}" alt="img" title="Delete">
                                         </a>

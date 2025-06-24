@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -25,7 +26,15 @@ class User extends Authenticatable
         'phone',
         'image',
         'role',
+        'is_active',
+        'is_banned'
     ];
+
+
+    // In your User model
+    protected $casts = [
+    'is_banned' => 'boolean',
+];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -55,5 +64,15 @@ class User extends Authenticatable
         return $this->belongsToMany(MaintenanceNotification::class)
             ->withPivot('is_read', 'read_at')
             ->withTimestamps();
+    }
+
+    public function borrowedDevices(): HasMany
+    {
+        return $this->hasMany(BorrowDevice::class);
+    }
+
+    public function approvedBorrowings(): HasMany
+    {
+        return $this->hasMany(BorrowDevice::class, 'approved_by');
     }
 }

@@ -9,6 +9,7 @@ use App\Models\Location;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Masmerise\Toaster\Toaster;
 
 class Newdevice extends Component
 {
@@ -79,7 +80,7 @@ class Newdevice extends Component
             'image' => $imagePath,
         ]);
 
-        session()->flash('success', 'Device added successfully!');
+        Toaster::success('Device added successfully!');
         $this->resetForm();
     }
 

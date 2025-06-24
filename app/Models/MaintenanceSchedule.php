@@ -11,7 +11,7 @@ class MaintenanceSchedule extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'type', 
+        'type',
         'title',
         'description',
         'start_time',
@@ -30,8 +30,9 @@ class MaintenanceSchedule extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function notifications()
-    {
-        return $this->hasMany(MaintenanceNotification::class, 'schedule_id');
-    }
+    // In App\Models\MaintenanceSchedule
+public function notifications()
+{
+    return $this->hasMany(MaintenanceNotification::class, 'schedule_id');
+}
 }

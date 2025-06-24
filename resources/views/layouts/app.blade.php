@@ -20,7 +20,7 @@
     </head>
     <body>
 
-    
+
 
     <!-- Main Content -->
     <div class="main-wrapper">
@@ -33,6 +33,7 @@
         <div class="page-wrapper">
             {{ $slot }}
         </div>
+        <x-toaster-hub />
     </div>
     <!-- Scripts -->
     @stack('scripts') <!-- For page-specific JS -->

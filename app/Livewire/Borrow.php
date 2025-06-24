@@ -32,6 +32,13 @@ class Borrow extends Component
     {
         $this->loadAvailableDevices();
         $this->loadUserBorrowings();
+
+        // For admin/IT, load pending requests separately
+        if (in_array(auth()->user()->role, ['admin', 'it-person'])) {
+            $this->pendingRequests = BorrowDevice::with(['device', 'user'])
+                ->where('status', 'pending')
+                ->get();
+        }
     }
 
     public function loadAvailableDevices()
@@ -41,10 +48,18 @@ class Borrow extends Component
 
     public function loadUserBorrowings()
     {
-        $this->borrowings = BorrowDevice::with('device')
-            ->where('user_id', Auth::id())
-            ->whereIn('status', ['approved', 'overdue'])
-            ->get();
+        if (in_array(auth()->user()->role, ['admin', 'it-person'])) {
+            // Admin/IT can see all borrowings except pending ones
+            $this->borrowings = BorrowDevice::with(['device', 'user'])
+                ->whereIn('status', ['approved', 'overdue', 'returned'])
+                ->get();
+        } else {
+            // Regular users only see their own borrowings
+            $this->borrowings = BorrowDevice::with('device')
+                ->where('user_id', Auth::id())
+                ->whereIn('status', ['approved', 'overdue'])
+                ->get();
+        }
     }
 
     public function requestBorrow()
@@ -71,7 +86,7 @@ class Borrow extends Component
 
     public function prepareReturn($borrowingId)
     {
-        $this->selectedBorrowing = $borrowingId;
+        $this->selectedBorrowing = BorrowDevice::with('device')->find($borrowingId);
         $this->showReturnModal = true;
         $this->dispatch('open-modal', id: 'returnDeviceModal');
     }
@@ -80,16 +95,14 @@ class Borrow extends Component
     {
         $this->validate(['returnNotes' => 'required|string|max:500']);
 
-        $borrowing = BorrowDevice::find($this->selectedBorrowing);
-
-        $borrowing->update([
+        $this->selectedBorrowing->update([
             'status' => 'returned',
             'returned_at' => now(),
             'notes' => $this->returnNotes
         ]);
 
         // Update device status
-        $borrowing->device->update(['status' => 'available']);
+        $this->selectedBorrowing->device->update(['status' => 'available']);
 
         $this->reset(['selectedBorrowing', 'returnNotes', 'showReturnModal']);
         $this->dispatch('close-modal', id: 'returnDeviceModal');
@@ -108,6 +121,40 @@ class Borrow extends Component
             $this->dispatch('notify', type: 'success', message: 'Borrow request canceled!');
         }
     }
+    public function approveBorrowRequest($borrowingId)
+{
+    $borrowing = BorrowDevice::findOrFail($borrowingId);
+
+    if ($borrowing->status === 'pending') {
+        // Update the borrowing record
+        $borrowing->update([
+            'status' => 'approved',
+            'approved_by' => auth()->id(),
+            'borrowed_at' => now()
+        ]);
+
+        // Update device status to 'borrowed'
+        $borrowing->device->update(['status' => 'borrow']);
+
+        // Refresh the data
+        $this->loadUserBorrowings();
+
+        // Notify user
+        $this->dispatch('notify',
+            type: 'success',
+            message: 'Borrow request approved successfully!'
+        );
+    }
+
+}
+
+
+
+public function viewBorrowing($borrowingId)
+{
+    $this->selectedBorrowing = BorrowDevice::with('device')->find($borrowingId);
+    $this->dispatch('open-modal', id: 'viewBorrowingModal');
+}
 
     public function render()
     {

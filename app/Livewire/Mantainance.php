@@ -4,24 +4,26 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use App\Models\MaintenanceSchedule;
 use App\Models\Device;
 use App\Models\User;
 use App\Models\MaintenanceNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class Mantainance extends Component
 {
-    use WithPagination;
+    use WithPagination,WithFileUploads;
 
     // Form properties
     public $title = '';
     public $maintenance_type = 'preventive';
     public $description = '';
-    public $status = 'scheduled';
+    public $status = 'pending';
     public $start_date = '';
+    public $scheduled_date = '';
     public $completion_date = '';
-    public $attachment_path = null;
 
     // UI state properties
     public $statusFilter = '';
@@ -35,12 +37,13 @@ class Mantainance extends Component
 
     protected $rules = [
         'title' => 'required|string|max:255',
-        'maintenance_type' => 'required|in:preventive,corrective,predictive,emergency',
+        'maintenance_type' => 'required|in:preventive, corrective, upgrade,other',
         'description' => 'required|string',
-        'status' => 'required|in:scheduled,in_progress,completed,cancelled',
+        'status' => 'required|in:pending,in_progress,completed,canceled',
         'start_date' => 'nullable|date',
         'completion_date' => 'nullable|date',
-        'attachment_path' => 'nullable|file|max:10240', // 10MB max
+        'notificationType' => 'required|in:reminder,start,end,cancellation',
+    'notificationSendAt' => 'required|date|after_or_equal:now',
     ];
 
     public function mount()
@@ -59,16 +62,16 @@ class Mantainance extends Component
         return view('livewire.mantainance', [
             'maintenanceTasks' => $query->paginate(10),
             'maintenanceTypes' => [
-                'preventive' => 'Preventive',
-                'corrective' => 'Corrective',
-                'predictive' => 'Predictive',
-                'emergency' => 'Emergency'
+               'preventive' => 'Preventive',
+            'corrective' => 'Corrective',
+            'upgrade' => 'Upgrade',
+            'other' => 'Other'
             ],
             'statuses' => [
-                'scheduled' => 'Scheduled',
-                'in_progress' => 'In Progress',
-                'completed' => 'Completed',
-                'cancelled' => 'Cancelled'
+                'pending' => 'Pending',
+            'in_progress' => 'In Progress',
+            'completed' => 'Completed',
+            'canceled' => 'Canceled'
             ]
         ]);
     }
@@ -90,31 +93,41 @@ class Mantainance extends Component
     }
 
     public function saveMaintenance()
-    {
-        $this->validate();
+{
+    $this->validate();
 
-        $data = [
-            'title' => $this->title,
-            'type' => $this->maintenance_type,
-            'description' => $this->description,
-            'status' => $this->status,
-            'start_time' => $this->start_date,
-            'end_time' => $this->completion_date,
-            'created_by' => Auth::id(),
-        ];
-
-        if ($this->currentTask) {
-            $this->currentTask->update($data);
-            $message = 'Maintenance task updated successfully!';
-        } else {
-            $this->currentTask = MaintenanceSchedule::create($data);
-            $message = 'Maintenance task created successfully!';
-        }
-
-        $this->resetForm();
-        $this->dispatch('hide-modal');
-        session()->flash('message', $message);
+    $data = [
+        'title' => $this->title,
+        'type' => $this->maintenance_type,
+        'description' => $this->description,
+        'status' => $this->status,
+        'start_time' => $this->start_date,
+        'end_time' => $this->completion_date,
+        'created_by' => Auth::id(),
+    ];
+    dd($data);
+    // If creating new task and status is 'in_progress', set start_time to now
+    if (!$this->currentTask && $this->status === 'in_progress') {
+        $data['start_time'] = now();
     }
+
+    // If completing task, set end_time to now
+    if ($this->status === 'completed') {
+        $data['end_time'] = now();
+    }
+
+    if ($this->currentTask) {
+        $this->currentTask->update($data);
+        $message = 'Maintenance task updated successfully!';
+    } else {
+        $this->currentTask = MaintenanceSchedule::create($data);
+        $message = 'Maintenance task created successfully!';
+    }
+
+    $this->resetForm();
+    $this->dispatch('hide-modal');
+    session()->flash('message', $message);
+}
 
     public function viewTask($taskId)
     {
@@ -179,7 +192,7 @@ class Mantainance extends Component
         $this->reset([
             'title', 'maintenance_type', 'description',
             'status', 'scheduled_date', 'start_date', 'completion_date',
-            'currentTask', 'attachment_path'
+            'currentTask'
         ]);
         $this->resetErrorBag();
         $this->scheduled_date = now()->format('Y-m-d\TH:i');
@@ -188,10 +201,10 @@ class Mantainance extends Component
     public function getStatusColor($status)
     {
         return match($status) {
-            'scheduled' => 'info',
+            'pending' => 'info',
             'in_progress' => 'primary',
             'completed' => 'success',
-            'cancelled' => 'danger',
+            'canceled' => 'danger',
             default => 'secondary'
         };
     }
@@ -206,4 +219,36 @@ class Mantainance extends Component
             default => 'secondary'
         };
     }
+
+    public function showNotificationModal($type)
+{
+    $this->notificationType = $type;
+    $this->notificationSendAt = now()->addDay()->format('Y-m-d\TH:i');
+    $this->showNotificationModal = true;
+}
+public function scheduleNotification()
+{
+    $this->validate([
+        'notificationType' => 'required|in:reminder,start,end,cancellation',
+        'notificationSendAt' => 'required|date|after_or_equal:now',
+    ]);
+
+    if ($this->currentTask) {
+        MaintenanceNotification::create([
+            'schedule_id' => $this->currentTask->id,
+            'type' => $this->notificationType,
+            'scheduled_at' => $this->notificationSendAt,
+            'is_sent' => false,
+        ]);
+
+        session()->flash('notificationMessage', 'Notification scheduled successfully!');
+        $this->showNotificationModal = false;
+    }
+}
+
+public function deleteNotification($notificationId)
+{
+    MaintenanceNotification::find($notificationId)->delete();
+    session()->flash('notificationMessage', 'Notification deleted successfully!');
+}
 }

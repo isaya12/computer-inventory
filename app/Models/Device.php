@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 
 class Device extends Model
 {
@@ -37,5 +39,10 @@ class Device extends Model
     public function location()
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function borrowings(): HasMany
+    {
+        return $this->hasMany(BorrowDevice::class);
     }
 }

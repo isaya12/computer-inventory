@@ -12,31 +12,36 @@
                 <!-- Tab Bar -->
                 <ul class="nav nav-tabs nav-tabs-bottom mt-4" id="userTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="info-tab-btn" data-bs-toggle="tab" data-bs-target="#info-tab" type="button" role="tab" aria-controls="info-tab" aria-selected="true">
+                        <button class="nav-link {{ $activeTab === 'info' ? 'active' : '' }}"
+                            wire:click.prevent="selectTab('info')" type="button">
                             <i class="fas fa-info-circle me-1"></i> Basic Info
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="update-tab-btn" data-bs-toggle="tab" data-bs-target="#update-tab" type="button" role="tab" aria-controls="update-tab" aria-selected="false">
+                        <button class="nav-link {{ $activeTab === 'update' ? 'active' : '' }}"
+                            wire:click.prevent="selectTab('update')" type="button">
                             <i class="fas fa-edit me-1"></i> Update Profile
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="security-tab-btn" data-bs-toggle="tab" data-bs-target="#security-tab" type="button" role="tab" aria-controls="security-tab" aria-selected="false">
+                        <button class="nav-link {{ $activeTab === 'security' ? 'active' : '' }}"
+                            wire:click.prevent="selectTab('security')" type="button">
                             <i class="fas fa-shield-alt me-1"></i> Security
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="email-tab-btn" data-bs-toggle="tab" data-bs-target="#email-tab" type="button" role="tab" aria-controls="email-tab" aria-selected="false">
+                        <button class="nav-link {{ $activeTab === 'email' ? 'active' : '' }}"
+                            wire:click.prevent="selectTab('email')" type="button">
                             <i class="fas fa-envelope me-1"></i> Send Email
                         </button>
                     </li>
                 </ul>
 
                 <!-- Tab Content -->
-                <div class="tab-content pt-3" id="userTabsContent">
+                <div class="tab-content pt-3">
                     <!-- Basic Info Tab -->
-                    <div class="tab-pane fade show active" id="info-tab" role="tabpanel" aria-labelledby="info-tab-btn">
+                    <div class="tab-pane fade {{ $activeTab === 'info' ? 'show active' : '' }}" id="info-tab"
+                        role="tabpanel">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="table-responsive">
@@ -57,7 +62,8 @@
                                             <tr>
                                                 <th>Role</th>
                                                 <td>
-                                                    <span class="badge bg-{{ $user->role === 'admin' ? 'danger' : 'primary' }}">
+                                                    <span
+                                                        class="badge bg-{{ $user->role === 'admin' ? 'danger' : 'primary' }}">
                                                         {{ ucfirst($user->role) }}
                                                     </span>
                                                 </td>
@@ -65,7 +71,7 @@
                                             <tr>
                                                 <th>Status</th>
                                                 <td>
-                                                    @if($user->is_banned)
+                                                    @if ($user->is_banned)
                                                         <span class="badge bg-danger">Banned</span>
                                                     @else
                                                         <span class="badge bg-success">Active</span>
@@ -80,6 +86,18 @@
                                                 <th>Last Updated</th>
                                                 <td>{{ $user->updated_at->format('M d, Y h:i A') }}</td>
                                             </tr>
+                                            @if ($user->department)
+                                                <tr>
+                                                    <th>Department</th>
+                                                    <td>{{ $user->department }}</td>
+                                                </tr>
+                                            @endif
+                                            @if ($user->bio)
+                                                <tr>
+                                                    <th>Bio</th>
+                                                    <td>{{ $user->bio }}</td>
+                                                </tr>
+                                            @endif
                                         </tbody>
                                     </table>
                                 </div>
@@ -90,11 +108,12 @@
                                         <h5 class="card-title">Profile Picture</h5>
                                     </div>
                                     <div class="card-body text-center">
-                                        <img src="{{ $user->profile_photo_url }}" alt="Profile"
-                                             class="img-fluid rounded-circle"
-                                             style="width: 150px; height: 150px; object-fit: cover;">
+                                        <img src="{{ $user->profile_image_url }}" alt="Profile"
+                                            class="img-fluid rounded-circle"
+                                            style="width: 150px; height: 150px; object-fit: cover;">
                                         <div class="mt-3">
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadPhotoModal">
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                data-bs-target="#uploadPhotoModal">
                                                 <i class="fas fa-camera me-1"></i> Change Photo
                                             </button>
                                         </div>
@@ -105,15 +124,17 @@
                     </div>
 
                     <!-- Update Profile Tab -->
-                    <div class="tab-pane fade" id="update-tab" role="tabpanel" aria-labelledby="update-tab-btn">
+                    <div class="tab-pane fade {{ $activeTab === 'update' ? 'show active' : '' }}" id="update-tab"
+                        role="tabpanel">
                         <form wire:submit.prevent="updateUser">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>First Name <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('user.first_name') is-invalid @enderror"
-                                               wire:model.defer="user.first_name">
-                                        @error('user.first_name')
+                                        <input type="text"
+                                            class="form-control @error('first_name') is-invalid @enderror"
+                                            wire:model="first_name">
+                                        @error('first_name')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -121,9 +142,10 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Last Name <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('user.last_name') is-invalid @enderror"
-                                               wire:model.defer="user.last_name">
-                                        @error('user.last_name')
+                                        <input type="text"
+                                            class="form-control @error('last_name') is-invalid @enderror"
+                                            wire:model="last_name">
+                                        @error('last_name')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -131,9 +153,9 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Email <span class="text-danger">*</span></label>
-                                        <input type="email" class="form-control @error('user.email') is-invalid @enderror"
-                                               wire:model.defer="user.email">
-                                        @error('user.email')
+                                        <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                            wire:model="email">
+                                        @error('email')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -141,9 +163,9 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Phone Number</label>
-                                        <input type="text" class="form-control @error('user.phone') is-invalid @enderror"
-                                               wire:model.defer="user.phone">
-                                        @error('user.phone')
+                                        <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                                            wire:model="phone">
+                                        @error('phone')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -151,30 +173,19 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Role <span class="text-danger">*</span></label>
-                                        <select class="form-select @error('user.role') is-invalid @enderror"
-                                                wire:model.defer="user.role">
+                                        <select class="form-select @error('role') is-invalid @enderror"
+                                            wire:model="role">
                                             <option value="admin">Administrator</option>
-                                            <option value="staff">Staff Member</option>
-                                            <option value="it-person">IT Technician</option>
-                                            <option value="user">Regular User</option>
+                                            <option value="staff">Staff</option>
+                                            <option value="it-person">Technician</option>
                                         </select>
-                                        @error('user.role')
+                                        @error('role')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Department</label>
-                                        <input type="text" class="form-control" wire:model.defer="user.department">
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Bio</label>
-                                        <textarea class="form-control" rows="3" wire:model.defer="user.bio"></textarea>
-                                    </div>
-                                </div>
+
+
                                 <div class="col-md-12 mt-3">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save me-1"></i> Update Profile
@@ -188,60 +199,43 @@
                     </div>
 
                     <!-- Security Tab -->
-                    <div class="tab-pane fade" id="security-tab" role="tabpanel" aria-labelledby="security-tab-btn">
+                    <div class="tab-pane fade {{ $activeTab === 'security' ? 'show active' : '' }}" id="security-tab"
+                        role="tabpanel">
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Password Reset</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <form wire:submit.prevent="resetPassword">
-                                            <div class="form-group">
-                                                <label>New Password</label>
-                                                <input type="password" class="form-control @error('new_password') is-invalid @enderror"
-                                                       wire:model.defer="new_password">
-                                                @error('new_password')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                            <div class="form-group mt-2">
-                                                <label>Confirm Password</label>
-                                                <input type="password" class="form-control"
-                                                       wire:model.defer="new_password_confirmation">
-                                            </div>
-                                            <div class="mt-3">
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-key me-1"></i> Reset Password
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-header">
                                         <h5 class="card-title">Account Status</h5>
                                     </div>
                                     <div class="card-body">
-                                        @if($user->is_banned)
+                                        @if ($user->is_banned)
                                             <p class="text-danger">This account is currently banned.</p>
-                                            <button wire:click="unbanUser" class="btn btn-success">
-                                                <i class="fas fa-check-circle me-1"></i> Unban Account
+                                            <button wire:click="unbanUser" wire:loading.attr="disabled"
+                                                class="btn btn-success">
+                                                <span wire:loading.remove wire:target="unbanUser">
+                                                    <i class="fas fa-check-circle me-1"></i> Unban Account
+                                                </span>
+                                                <span wire:loading wire:target="unbanUser">
+                                                    <span class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    Processing...
+                                                </span>
                                             </button>
                                         @else
                                             <p class="text-success">This account is active.</p>
-                                            <button wire:click="banUser" class="btn btn-warning">
-                                                <i class="fas fa-ban me-1"></i> Ban Account
+                                            <button wire:click="banUser" wire:loading.attr="disabled"
+                                                class="btn btn-warning">
+                                                <span wire:loading.remove wire:target="banUser">
+                                                    <i class="fas fa-ban me-1"></i> Ban Account
+                                                </span>
+                                                <span wire:loading wire:target="banUser">
+                                                    <span class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    Processing...
+                                                </span>
                                             </button>
                                         @endif
 
-                                        <hr>
-
-                                        <button wire:click="confirmDelete" class="btn btn-danger mt-2">
-                                            <i class="fas fa-trash-alt me-1"></i> Delete Account Permanently
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -249,20 +243,20 @@
                     </div>
 
                     <!-- Email Tab -->
-                    <div class="tab-pane fade" id="email-tab" role="tabpanel" aria-labelledby="email-tab-btn">
+                    <div class="tab-pane fade {{ $activeTab === 'email' ? 'show active' : '' }}" id="email-tab"
+                        role="tabpanel">
                         <form wire:submit.prevent="sendEmail">
                             <div class="form-group">
                                 <label>Subject</label>
                                 <input type="text" class="form-control @error('emailSubject') is-invalid @enderror"
-                                       wire:model.defer="emailSubject">
+                                    wire:model="emailSubject">
                                 @error('emailSubject')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group mt-3">
                                 <label>Message</label>
-                                <textarea class="form-control @error('emailMessage') is-invalid @enderror" rows="5"
-                                          wire:model.defer="emailMessage"></textarea>
+                                <textarea class="form-control @error('emailMessage') is-invalid @enderror" rows="5" wire:model="emailMessage"></textarea>
                                 @error('emailMessage')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -279,58 +273,44 @@
         </div>
     </div>
 
-    <!-- Photo Upload Modal -->
-    <div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Upload Profile Photo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                {{-- <form wire:submit.prevent="updateProfilePhoto">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="profilePhoto" class="form-label">Select Image</label>
-                            <input class="form-control" type="file" id="profilePhoto" wire:model="photo">
-                            @error('photo')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        @if($photo)
-                            <div class="mt-2">
-                                <h6>Preview:</h6>
-                                <img src="{{ $photo->temporaryUrl() }}" class="img-thumbnail" style="max-height: 200px;">
-                            </div>
-                        @endif
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">
-                            <span wire:loading.remove wire:target="updateProfilePhoto">Upload</span>
-                            <span wire:loading wire:target="updateProfilePhoto">
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                Uploading...
-                            </span>
-                        </button>
-                    </div>
-                </form> --}}
+   <!-- Photo Upload Modal -->
+<div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Profile Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <form wire:submit.prevent="updateProfilePhoto">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="profilePhoto" class="form-label">Select Image</label>
+                        <input class="form-control" type="file" id="profilePhoto" wire:model="photo" accept="image/*">
+                        @error('photo')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    @if ($photo)
+                        <div class="mt-2">
+                            <h6>Preview:</h6>
+                            <img src="{{ $photo->temporaryUrl() }}" class="img-thumbnail"
+                                style="max-height: 200px;">
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span wire:loading.remove wire:target="updateProfilePhoto">Upload</span>
+                        <span wire:loading wire:target="updateProfilePhoto">
+                            <span class="spinner-border spinner-border-sm" role="status"
+                                aria-hidden="true"></span>
+                            Uploading...
+                        </span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-
-    @push('scripts')
-    <script>
-    document.addEventListener('livewire:load', function() {
-        // Initialize Bootstrap tabs
-        var tabElms = [].slice.call(document.querySelectorAll('button[data-bs-toggle="tab"]'));
-        tabElms.forEach(function(tabEl) {
-            tabEl.addEventListener('click', function(event) {
-                event.preventDefault();
-                var tab = new bootstrap.Tab(tabEl);
-                tab.show();
-            });
-        });
-    });
-    </script>
-    @endpush
+</div>
 </div>

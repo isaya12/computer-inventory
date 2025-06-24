@@ -8,14 +8,13 @@ class MaintenanceNotification extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'schedule_id',
-        'type',
-        'send_at',
-        'is_sent',
-        'sent_at'
-    ];
-
+protected $fillable = [
+    'schedule_id',
+    'type',
+    'scheduled_at',
+    'is_sent',
+    'sent_at'
+];
     protected $casts = [
         'send_at' => 'datetime',
         'sent_at' => 'datetime',

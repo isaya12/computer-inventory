@@ -32,7 +32,11 @@
                         <a href="{{ route('mantainance') }}"><img src="assets/img/icons/purchase1.svg"
                                 alt="img"><span> Meintanance</span> </a>
                     </li>
-                    <li class="submenu">
+                    <li class="">
+                        <a href="{{ route('borrowdevice') }}"><img src="assets/img/icons/purchase1.svg"
+                                alt="img"><span> Borrowing</span> </a>
+                    </li>
+                    {{-- <li class="submenu">
                         <a href="javascript:void(0);"><img src="assets/img/icons/time.svg" alt="img"><span>
                                 Report</span> <span class="menu-arrow"></span></a>
                         <ul>
@@ -44,7 +48,7 @@
                             <li><a href="supplierreport.html">Supplier Report</a></li>
                             <li><a href="customerreport.html">Customer Report</a></li>
                         </ul>
-                    </li>
+                    </li> --}}
                     {{--  <li class="submenu">
                     <a href="javascript:void(0);"><img src="assets/img/icons/expense1.svg"
                             alt="img"><span> Expense</span> <span class="menu-arrow"></span></a>

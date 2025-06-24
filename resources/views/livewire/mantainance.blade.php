@@ -39,7 +39,6 @@
 
                     </div>
                 </div>
-
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
@@ -345,21 +344,6 @@
                                 </div>
 
 
-                                <div class="mb-3">
-                                    <label class="form-label">Attachment</label>
-                                    <input type="file" class="form-control" wire:model="attachment_path">
-                                    @error('attachment_path')
-                                        <span class="text-danger">{{ $message }}</span>
-                                    @enderror
-                                    @if ($currentTask && $currentTask->attachment_path)
-                                        <div class="mt-2">
-                                            <a href="{{ asset('storage/' . $currentTask->attachment_path) }}"
-                                                target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-paperclip"></i> View Current Attachment
-                                            </a>
-                                        </div>
-                                    @endif
-                                </div>
                             </div>
                         </div>
                     </div>
