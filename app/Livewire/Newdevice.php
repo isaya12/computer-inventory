@@ -51,11 +51,28 @@ class Newdevice extends Component
     }
 
     public function generateBarcode()
-{
-    $this->barcode = 'DEV-' . Str::upper(Str::random(8));
-    $this->dispatch('generateClientBarcode', barcode: $this->barcode)
-        ->to(Newdevice::class); // Explicitly target the component
-}
+    {
+        // Generate a unique barcode
+        $this->barcode = 'DEV-' . Str::upper(Str::random(8));
+
+        // Prepare device info to be encoded in the barcode
+        $deviceInfo = [
+            'name' => $this->name,
+            'model' => $this->model,
+            'brand' => $this->brand,
+            'serial' => $this->serial_number,
+            'barcode' => $this->barcode
+        ];
+
+        // Convert to JSON string for the barcode
+        $barcodeData = json_encode($deviceInfo);
+
+        // Dispatch event with both the display barcode and the data to encode
+        $this->dispatch('barcodeGenerated', [
+            'displayBarcode' => $this->barcode,
+            'barcodeData' => $barcodeData
+        ]);
+    }
 
     public function save()
     {

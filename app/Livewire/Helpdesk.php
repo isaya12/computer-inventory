@@ -24,8 +24,8 @@ class Helpdesk extends Component
 
     #[Rule('nullable|sometimes|array')]
     public $attachments = [];
-
     public $tickets = [];
+    public $admintickets = [];
     public $selectedTicket = null;
     public $confirmingDeletion = false;
     public $ticketToDelete = null;
@@ -33,6 +33,7 @@ class Helpdesk extends Component
     public function mount()
     {
         $this->loadTickets();
+        $this->loadTicketAdmin();
     }
 
     public function loadTickets()
@@ -40,6 +41,10 @@ class Helpdesk extends Component
         $this->tickets = Tickets::where('user_id', auth()->id())
             ->latest()
             ->get();
+    }
+    public function loadTicketAdmin()
+    {
+        $this->admintickets = Tickets::latest()->get();
     }
 
     public function createTicket()
@@ -71,12 +76,17 @@ class Helpdesk extends Component
     }
 
     public function viewTicket($ticketId)
-    {
+{
+    if (in_array(auth()->user()->role, ['admin', 'it-person'])) {
+        $this->selectedTicket = Tickets::findOrFail($ticketId);
+    } else {
         $this->selectedTicket = Tickets::where('user_id', auth()->id())
                                     ->findOrFail($ticketId);
-
-        $this->dispatch('open-modal', id: 'viewTicketModal');
     }
+
+    $this->dispatch('open-modal', id: 'viewTicketModal');
+}
+
 
     public function confirmDelete($ticketId)
     {
@@ -108,6 +118,8 @@ class Helpdesk extends Component
     #[Title('Help Desk')]
     public function render()
     {
-        return view('livewire.helpdesk');
+        return view('livewire.helpdesk', [
+            'admintickets' => $this->admintickets
+        ]);
     }
 }

@@ -55,9 +55,7 @@
                     <hr class="m-0">
                     <a class="dropdown-item" href="{{ route('profile') }}"> <i class="me-2" data-feather="user"></i>
                         My Profile</a>
-                    <a class="dropdown-item" href="generalsettings.html"><i class="me-2"
-                            data-feather="settings"></i>Settings</a>
-                    <hr class="m-0">
+
                     <livewire:auth.logout/>
                 </div>
             </div>
@@ -70,7 +68,6 @@
             aria-expanded="false"><i class="fa fa-ellipsis-v"></i></a>
         <div class="dropdown-menu dropdown-menu-right">
             <a class="dropdown-item" href="{{ route('profile') }}">My Profile</a>
-            <a class="dropdown-item" href="generalsettings.html">Settings</a>
             <livewire:auth.logout />
         </div>
     </div>

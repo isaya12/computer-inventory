@@ -31,8 +31,8 @@ class MaintenanceSchedule extends Model
     }
 
     // In App\Models\MaintenanceSchedule
-public function notifications()
-{
-    return $this->hasMany(MaintenanceNotification::class, 'schedule_id');
-}
+    public function notifications()
+    {
+        return $this->hasMany(MaintenanceNotification::class, 'schedule_id');
+    }
 }

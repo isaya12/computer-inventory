@@ -49,15 +49,15 @@ class Borrow extends Component
     public function loadUserBorrowings()
     {
         if (in_array(auth()->user()->role, ['admin', 'it-person'])) {
-            // Admin/IT can see all borrowings except pending ones
+            // Admin/IT can see all borrowings
             $this->borrowings = BorrowDevice::with(['device', 'user'])
-                ->whereIn('status', ['approved', 'overdue', 'returned'])
+                ->orderBy('created_at', 'desc')
                 ->get();
         } else {
             // Regular users only see their own borrowings
             $this->borrowings = BorrowDevice::with('device')
                 ->where('user_id', Auth::id())
-                ->whereIn('status', ['approved', 'overdue'])
+                ->orderBy('created_at', 'desc')
                 ->get();
         }
     }

@@ -29,12 +29,7 @@
                             <i class="fas fa-shield-alt me-1"></i> Security
                         </button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ $activeTab === 'email' ? 'active' : '' }}"
-                            wire:click.prevent="selectTab('email')" type="button">
-                            <i class="fas fa-envelope me-1"></i> Send Email
-                        </button>
-                    </li>
+
                 </ul>
 
                 <!-- Tab Content -->
@@ -108,15 +103,42 @@
                                         <h5 class="card-title">Profile Picture</h5>
                                     </div>
                                     <div class="card-body text-center">
-                                        <img src="{{ $user->profile_image_url }}" alt="Profile"
-                                            class="img-fluid rounded-circle"
-                                            style="width: 150px; height: 150px; object-fit: cover;">
-                                        <div class="mt-3">
-                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                data-bs-target="#uploadPhotoModal">
-                                                <i class="fas fa-camera me-1"></i> Change Photo
-                                            </button>
-                                        </div>
+                                        <label for="profilePhoto" style="cursor: pointer;">
+                                            <img src="{{ asset('storage/' . $user->image) }}" alt="Profile"
+                                                class="img-fluid "
+                                                style="width: 200px; height: 200px; object-fit: cover;">
+                                            <div class="mt-3">
+                                                <span class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-camera me-1"></i> Change Photo
+                                                </span>
+                                            </div>
+                                        </label>
+                                        <input type="file" id="profilePhoto" wire:model="photo" accept="image/*"
+                                            class="d-none">
+
+                                        @if ($photo)
+                                            <div class="mt-3">
+                                                <button wire:click="updateProfilePhoto" class="btn btn-success">
+                                                    <span wire:loading.remove wire:target="updateProfilePhoto">
+                                                        <i class="fas fa-save me-1"></i> Save Photo
+                                                    </span>
+                                                    <span wire:loading wire:target="updateProfilePhoto">
+                                                        <span class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
+                                                        Uploading...
+                                                    </span>
+                                                </button>
+                                                <button wire:click="$set('photo', null)"
+                                                    class="btn btn-outline-secondary ms-2">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Preview:</small>
+                                                <img src="{{ $photo->temporaryUrl() }}" class="img-thumbnail mt-1"
+                                                    style="max-height: 100px;">
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -163,7 +185,8 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Phone Number</label>
-                                        <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                                        <input type="text"
+                                            class="form-control @error('phone') is-invalid @enderror"
                                             wire:model="phone">
                                         @error('phone')
                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -242,75 +265,9 @@
                         </div>
                     </div>
 
-                    <!-- Email Tab -->
-                    <div class="tab-pane fade {{ $activeTab === 'email' ? 'show active' : '' }}" id="email-tab"
-                        role="tabpanel">
-                        <form wire:submit.prevent="sendEmail">
-                            <div class="form-group">
-                                <label>Subject</label>
-                                <input type="text" class="form-control @error('emailSubject') is-invalid @enderror"
-                                    wire:model="emailSubject">
-                                @error('emailSubject')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="form-group mt-3">
-                                <label>Message</label>
-                                <textarea class="form-control @error('emailMessage') is-invalid @enderror" rows="5" wire:model="emailMessage"></textarea>
-                                @error('emailMessage')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="mt-3">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-paper-plane me-1"></i> Send Email
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-   <!-- Photo Upload Modal -->
-<div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Upload Profile Photo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
-            <form wire:submit.prevent="updateProfilePhoto">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="profilePhoto" class="form-label">Select Image</label>
-                        <input class="form-control" type="file" id="profilePhoto" wire:model="photo" accept="image/*">
-                        @error('photo')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    @if ($photo)
-                        <div class="mt-2">
-                            <h6>Preview:</h6>
-                            <img src="{{ $photo->temporaryUrl() }}" class="img-thumbnail"
-                                style="max-height: 200px;">
-                        </div>
-                    @endif
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span wire:loading.remove wire:target="updateProfilePhoto">Upload</span>
-                        <span wire:loading wire:target="updateProfilePhoto">
-                            <span class="spinner-border spinner-border-sm" role="status"
-                                aria-hidden="true"></span>
-                            Uploading...
-                        </span>
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 </div>

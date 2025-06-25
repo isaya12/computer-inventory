@@ -10,6 +10,7 @@ use App\Livewire\Viewusers;
 use App\Livewire\Devicedetails;
 use App\Livewire\Userdetails;
 use App\Livewire\Mantainance;
+use App\Livewire\NewUser;
 use App\Livewire\Profile\Profile;
 use App\Http\Middleware\Authenticate;
 
@@ -24,6 +25,7 @@ Route::middleware(['authenticate'])->group(function () {
     Route::get('/users', Viewusers::class)->name('users');
     Route::get('/users/{id}', Userdetails::class)->name('userdetails');
     Route::get('/mantainance', Mantainance::class)->name('mantainance');
+    Route::get('/newuser', NewUser::class)->name('newuser');
 
 });
 

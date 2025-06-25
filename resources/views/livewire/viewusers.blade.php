@@ -6,7 +6,7 @@
                 <h6>Manage your users</h6>
             </div>
             <div class="page-btn">
-                <a href="" class="btn btn-added">
+                <a href="{{ route('newuser') }}" class="btn btn-added" >
                     <img src="{{ asset('assets/img/icons/plus.svg') }}" alt="img" class="me-1">
                     Add New User
                 </a>
@@ -96,7 +96,7 @@
                                             @if ($user->image)
                                                 <img src="{{ asset('storage/' . $user->image) }}" alt="user">
                                             @else
-                                                <img src="{{ asset('assets/img/user-default.jpg') }}" alt="user">
+                                                <img src="{{ asset('assets/img/user.png') }}" alt="user">
                                             @endif
                                         </a>
                                         <a href="javascript:void(0);">{{ $user->first_name }} {{ $user->last_name }}</a>

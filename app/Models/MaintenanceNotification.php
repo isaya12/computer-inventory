@@ -16,7 +16,6 @@ protected $fillable = [
     'sent_at'
 ];
     protected $casts = [
-        'send_at' => 'datetime',
         'sent_at' => 'datetime',
         'is_sent' => 'boolean',
     ];

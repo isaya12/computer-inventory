@@ -43,12 +43,7 @@
                            Available
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link @if($statusFilter == 'maintenance') active @endif"
-                           wire:click.prevent="setStatusFilter('maintenance')">
-                           Maintenance
-                        </a>
-                    </li>
+
                     <li class="nav-item">
                         <a href="#" class="nav-link @if($statusFilter == 'retired') active @endif"
                            wire:click.prevent="setStatusFilter('retired')">
@@ -80,7 +75,6 @@
                                     @endif
                                 </th>
                                 <th>Serial Number</th>
-                                <th>Brand</th>
                                 <th wire:click="sortBy('purchase_date')" style="cursor: pointer;">
                                     Purchase Date
                                     @if($sortField === 'purchase_date')
@@ -106,14 +100,13 @@
                                             @if ($device->image)
                                                 <img src="{{ asset('storage/device-images/' . basename($device->image)) }}" alt="product">
                                             @else
-                                                <img src="{{ asset('assets/img/product/product17.jpg') }}" alt="product">
+                                                <img src="{{ asset('assets/img/product/devices.webp') }}" alt="product">
                                             @endif
                                         </a>
-                                        <a href="javascript:void(0);">{{ $device->device_name }}</a>
+                                        <a href="javascript:void(0);">{{ $device->name }}</a>
                                     </td>
                                     <td>{{ $device->category->name }}</td>
                                     <td>{{ $device->serial_number }}</td>
-                                    <td>{{ $device->brand }}</td>
                                     <td>{{ \Carbon\Carbon::parse($device->purchase_date)->format('d M Y') }}</td>
                                     <td>
                                         {{ $device->status }}
@@ -128,11 +121,8 @@
                                         <a class="me-3" href="javascript:void(0);" wire:click="viewDevice({{ $device->id }})">
                                             <img src="{{ asset('assets/img/icons/eye.svg') }}" alt="View">
                                         </a>
-
-                                        <a class="confirm-text" href="javascript:void(0);"
-                                           wire:click="deleteDevice({{ $device->id }})"
-                                           onclick="return confirm('Are you sure you want to delete this device?')">
-                                            <img src="{{ asset('assets/img/icons/delete.svg') }}" alt="img">
+                                        <a href="javascript:void(0);" wire:click="confirmDelete({{ $device->id }})">
+                                            <img src="{{ asset('assets/img/icons/delete.svg') }}" alt="Delete" title="Delete">
                                         </a>
                                     </td>
                                 </tr>
@@ -177,6 +167,27 @@
                 </div>
             </div>
         </div>
+
+
     </div>
+@endif
+@if ($showDeleteModal)
+<div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" wire:click="$set('showDeleteModal', false)" class="close">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this device? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" wire:click="$set('showDeleteModal', false)" class="btn btn-secondary">Cancel</button>
+                <button type="button" wire:click="deleteDevice" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endif
 </div>

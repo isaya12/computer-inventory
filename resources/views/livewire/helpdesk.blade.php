@@ -4,15 +4,74 @@
             <div class="page-title">
                 <h4 class="mb-0">Help Desk / Tickets</h4>
             </div>
-            <div class="col-auto ps-0">
-                <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal"
-                    data-bs-target="#createTicketModal">
-                    <img src="{{ asset('assets/img/icons/plus1.svg') }}" alt="Create" class="me-2">
-                    Create New Ticket
-                </a>
-            </div>
+           @if (auth()->user()->role=='staff')
+           <div class="col-auto ps-0">
+            <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal"
+                data-bs-target="#createTicketModal">
+                <img src="{{ asset('assets/img/icons/plus1.svg') }}" alt="Create" class="me-2">
+                Create New Ticket
+            </a>
+        </div>
+           @endif
         </div>
 
+        @if (in_array(auth()->user()->role,['admin','it-person']))
+        <div class="card">
+            <div class="card-body">
+                @if ($admintickets->isEmpty())
+                    <div class="alert alert-info text-center">You have not created any tickets yet.</div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Ticket ID</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($admintickets as $ticket)
+                                    <tr>
+                                        <td>{{ $ticket->ticket_id }}</td>
+                                        <td>{{ $ticket->subject }}</td>
+                                        <td>
+                                            <span
+                                                class="badge bg-{{ $ticket->status == 'open'
+                                                    ? 'primary'
+                                                    : ($ticket->status == 'pending'
+                                                        ? 'warning'
+                                                        : ($ticket->status == 'resolved'
+                                                            ? 'success'
+                                                            : 'secondary')) }}">
+                                                {{ ucfirst($ticket->status) }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $ticket->created_at->format('M d, Y') }}</td>
+                                        <td>
+                                            <a href="#" wire:click.prevent="viewTicket({{ $ticket->id }})"
+                                                class="text-info me-2">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if ($ticket->status == 'open')
+                                                <a href="#"
+                                                    wire:click.prevent="confirmDelete({{ $ticket->id }})"
+                                                    class="text-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+        @else
         <div class="card">
             <div class="card-body">
                 @if ($tickets->isEmpty())
@@ -68,6 +127,7 @@
                 @endif
             </div>
         </div>
+        @endif
     </div>
 
     <!-- Create Ticket Modal -->
@@ -134,27 +194,31 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @if ($selectedTicket)
+                    @php
+                        // Determine which ticket to show based on user role
+                        $ticketToShow = in_array(auth()->user()->role, ['admin', 'it-person'])
+                            ? $selectedTicket
+                            : $adminselectedTicket;
+                    @endphp
+
+                    @if ($ticketToShow)
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Ticket ID</label>
-                                    <p class="form-control-static">{{ $selectedTicket->ticket_id }}</p>
+                                    <p class="form-control-static">{{ $ticketToShow->ticket_id }}</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Status</label>
                                     <p class="form-control-static">
-                                        <span
-                                            class="badge bg-{{ $selectedTicket->status == 'open'
-                                                ? 'primary'
-                                                : ($selectedTicket->status == 'pending'
-                                                    ? 'warning'
-                                                    : ($selectedTicket->status == 'resolved'
-                                                        ? 'success'
-                                                        : 'secondary')) }}">
-                                            {{ ucfirst($selectedTicket->status) }}
+                                        <span class="badge bg-{{
+                                            $ticketToShow->status == 'open' ? 'primary' :
+                                            ($ticketToShow->status == 'pending' ? 'warning' :
+                                            ($ticketToShow->status == 'resolved' ? 'success' : 'secondary'))
+                                        }}">
+                                            {{ ucfirst($ticketToShow->status) }}
                                         </span>
                                     </p>
                                 </div>
@@ -162,23 +226,23 @@
                             <div class="col-12">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Subject</label>
-                                    <p class="form-control-static">{{ $selectedTicket->subject }}</p>
+                                    <p class="form-control-static">{{ $ticketToShow->subject }}</p>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Description</label>
                                     <div class="border p-3 rounded bg-light">
-                                        {!! nl2br(e($selectedTicket->description)) !!}
+                                        {!! nl2br(e($ticketToShow->description)) !!}
                                     </div>
                                 </div>
                             </div>
-                            @if ($selectedTicket->attachment)
+                            @if ($ticketToShow->attachment)
                                 <div class="col-12">
                                     <div class="mb-3">
                                         <label class="form-label fw-bold">Attachment</label>
                                         <div>
-                                            <a href="{{ Storage::url($selectedTicket->attachment) }}" target="_blank"
+                                            <a href="{{ Storage::url($ticketToShow->attachment) }}" target="_blank"
                                                 class="btn btn-outline-primary">
                                                 <i class="fas fa-paperclip me-2"></i> View Attachment
                                             </a>
@@ -186,53 +250,50 @@
                                     </div>
                                 </div>
                             @endif
-                            <!-- User Information Section -->
+
                             @if (in_array(auth()->user()->role, ['admin', 'it-person']))
                                 <div class="col-12">
-                                    @if (auth()->id() == $selectedTicket->user_id)
-                                        <div class="">
-                                            <h6 class="mb-0 text-black">User Information</h6>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="mb-2">
-                                                    <label class="form-label fw-bold">Name</label>
-                                                    <p>{{ $selectedTicket->user->first_name }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="mb-2">
-                                                    <label class="form-label fw-bold">Email</label>
-                                                    <p>{{ $selectedTicket->user->email }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="mb-2">
-                                                    <label class="form-label fw-bold">Phone</label>
-                                                    <p>{{ $selectedTicket->user->phone ?? 'N/A' }}</p>
-                                                </div>
+                                    <div class="">
+                                        <h6 class="mb-0 text-black">User Information</h6>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label fw-bold">Name</label>
+                                                <p>{{ $ticketToShow->user->first_name }}</p>
                                             </div>
                                         </div>
-                                    @endif
-                                </div>
-                            @endif
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Created At</label>
-                                    <p class="form-control-static">{{ $selectedTicket->created_at->format('M d, Y') }}
-                                    </p>
-                                </div>
-                            </div>
-                            @if ($selectedTicket->resolved_at)
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Resolved At</label>
-                                        <p class="form-control-static">
-                                            {{ $selectedTicket->resolved_at->format('M d, Y') }}</p>
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label fw-bold">Email</label>
+                                                <p>{{ $ticketToShow->user->email }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label fw-bold">Phone</label>
+                                                <p>{{ $ticketToShow->user->phone ?? 'N/A' }}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             @endif
 
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Created At</label>
+                                    <p class="form-control-static">{{ $ticketToShow->created_at->format('M d, Y') }}</p>
+                                </div>
+                            </div>
+                            @if ($ticketToShow->resolved_at)
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Resolved At</label>
+                                        <p class="form-control-static">
+                                            {{ $ticketToShow->resolved_at->format('M d, Y') }}</p>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>

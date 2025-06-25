@@ -4,12 +4,12 @@
             <div class="page-title">
                 <h4 class="mb-0">Device Borrowing</h4>
             </div>
-           @if (auth()->user()->role=='staff')
-           <button wire:click="$set('showBorrowModal', true)" class="btn btn-primary" data-bs-toggle="modal"
-           data-bs-target="#borrowDeviceModal">
-           <i class="fas fa-plus me-2"></i>Request Device
-       </button>
-           @endif
+            @if (auth()->user()->role == 'staff')
+                <button wire:click="$set('showBorrowModal', true)" class="btn btn-primary" data-bs-toggle="modal"
+                    data-bs-target="#borrowDeviceModal">
+                    <i class="fas fa-plus me-2"></i>Request Device
+                </button>
+            @endif
         </div>
 
         <!-- Borrow Device Modal -->
@@ -149,8 +149,9 @@
                         <div class="tab-pane fade show active" id="approved-tab-pane" role="tabpanel"
                             aria-labelledby="approved-tab" tabindex="0">
                             @php
-                                $approvedRequests = \App\Models\BorrowDevice::with('device')
+                                $approvedRequests = \App\Models\BorrowDevice::with(['device', 'user'])
                                     ->where('status', 'approved')
+                                    ->orderBy('created_at', 'desc')
                                     ->get();
                             @endphp
 
@@ -163,6 +164,7 @@
                                             <tr>
                                                 <th>Device</th>
                                                 <th>Serial Number</th>
+                                                <th>Borrower</th>
                                                 <th>Borrow Date</th>
                                                 <th>Expected Return</th>
                                                 <th>Actions</th>
@@ -173,10 +175,12 @@
                                                 <tr>
                                                     <td>{{ $request->device->name }}</td>
                                                     <td>{{ $request->device->serial_number }}</td>
-                                                    <td>{{ $request->borrowed_at }}</td>
+                                                    <td>{{ $request->user->first_name }}
+                                                        {{ $request->user->last_name }}</td>
+                                                    <td>{{ $request->borrowed_at->format('M d, Y') }}</td>
                                                     <td
                                                         class="{{ $request->expected_return_date->isPast() ? 'text-danger' : '' }}">
-                                                        {{ $request->expected_return_date }}
+                                                        {{ $request->expected_return_date->format('M d, Y') }}
                                                     </td>
                                                     <td>
                                                         <button wire:click="viewBorrowing({{ $request->id }})"
@@ -200,9 +204,9 @@
                         <div class="tab-pane fade" id="pending-tab-pane" role="tabpanel"
                             aria-labelledby="pending-tab" tabindex="0">
                             @php
-                                $pendingRequests = \App\Models\BorrowDevice::with('device')
-                                    ->where('user_id', auth()->id())
+                                $pendingRequests = \App\Models\BorrowDevice::with(['device', 'user'])
                                     ->where('status', 'pending')
+                                    ->orderBy('created_at', 'desc')
                                     ->get();
                             @endphp
 
@@ -214,6 +218,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Device</th>
+                                                <th>Borrower</th>
                                                 <th>Request Date</th>
                                                 <th>Expected Return</th>
                                                 <th>Purpose</th>
@@ -224,15 +229,16 @@
                                             @foreach ($pendingRequests as $request)
                                                 <tr>
                                                     <td>{{ $request->device->name }}</td>
+                                                    <td>{{ $request->user->first_name }}
+                                                        {{ $request->user->last_name }}</td>
                                                     <td>{{ $request->created_at->format('M d, Y H:i') }}</td>
-                                                    <td>{{ $request->expected_return_date->format('M d, Y H:i') }}</td>
+                                                    <td>{{ $request->expected_return_date->format('M d, Y') }}</td>
                                                     <td>{{ Str::limit($request->purpose, 50) }}</td>
                                                     <td>
                                                         <button wire:click="viewBorrowing({{ $request->id }})"
                                                             class="btn btn-sm btn-info me-1">
                                                             <i class="fas fa-eye"></i> View
                                                         </button>
-
                                                         <button wire:click="approveBorrowRequest({{ $request->id }})"
                                                             class="btn btn-sm btn-success">
                                                             <i class="fas fa-check-circle"></i> Approve

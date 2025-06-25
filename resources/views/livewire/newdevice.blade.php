@@ -8,10 +8,10 @@
 
         <div class="col-12">
             @if (session()->has('success'))
-            <div class="alert alert-success mt-3">
-                {{ session('success') }}
-            </div>
-        @endif
+                <div class="alert alert-success mt-3">
+                    {{ session('success') }}
+                </div>
+            @endif
         </div>
         <div class="card">
             <form wire:submit.prevent="save" enctype="multipart/form-data">
@@ -87,12 +87,16 @@
                                 <label>Barcode/RFID</label>
                                 <div class="input-group">
                                     <input type="text" wire:model="barcode" class="form-control" readonly>
-                                    <button type="button" wire:click="generateBarcode" class="btn btn-primary">Generate</button>
+                                    <button type="button" wire:click="generateBarcode" class="btn btn-primary">
+                                        Generate
+                                    </button>
                                 </div>
-                                @error('barcode') <span class="text-danger">{{ $message }}</span> @enderror
-                                <div class="mt-2 text-center">
+                                @error('barcode')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                                <div class="mt-2">
                                     <canvas id="barcodeCanvas" style="display: none;"></canvas>
-                                    <div id="barcodePreview"></div>
+                                    <div id="barcodePreview" class="border p-2 bg-white"></div>
                                 </div>
                             </div>
                         </div>
@@ -128,8 +132,7 @@
                         <div class="form-group">
                             <label>Device Image</label>
                             <div class="image-upload">
-                                <input type="file" wire:model="device_image" class="form-control"
-                                    accept="image/*">
+                                <input type="file" wire:model="device_image" class="form-control" accept="image/*">
                                 @error('device_image')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -158,54 +161,69 @@
     </div>
 
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            // Verify JsBarcode is loaded
-            if (typeof JsBarcode === 'undefined') {
-                console.error('JsBarcode library not loaded!');
-                return;
-            }
+        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+        <script>
+            document.addEventListener('livewire:initialized', () => {
+                // Listen for the barcode generation event
+                Livewire.on('barcodeGenerated', (data) => {
+                    console.log('Generating barcode:', data);
 
-            Livewire.on('generateClientBarcode', (barcode) => {
-                console.log('Received barcode:', barcode); // Debug log
+                    try {
+                        const canvas = document.getElementById('barcodeCanvas');
+                        const preview = document.getElementById('barcodePreview');
 
-                try {
-                    const canvas = document.getElementById('barcodeCanvas');
-                    if (!canvas) {
-                        console.error('Canvas element not found!');
-                        return;
+                        if (!canvas || !preview) {
+                            console.error('Required elements not found');
+                            return;
+                        }
+
+                        // Clear previous barcode
+                        preview.innerHTML = '';
+
+                        // Generate new barcode with the device info
+                        JsBarcode(canvas, data.barcodeData, {
+                            format: "CODE128",
+                            lineColor: "#000",
+                            width: 2,
+                            height: 50,
+                            displayValue: true
+                        });
+
+                        // Create container for barcode and info
+                        const container = document.createElement('div');
+                        container.style.textAlign = 'center';
+                        container.style.marginTop = '10px';
+
+                        // Add the barcode image
+                        const img = new Image();
+                        img.src = canvas.toDataURL('image/png');
+                        img.alt = 'Barcode';
+                        img.style.height = '50px';
+                        img.style.marginBottom = '10px';
+                        container.appendChild(img);
+
+                        // Add device information below the barcode
+                        const deviceInfo = JSON.parse(data.barcodeData);
+                        const infoDiv = document.createElement('div');
+                        infoDiv.style.fontSize = '12px';
+                        infoDiv.style.textAlign = 'center';
+
+                        infoDiv.innerHTML = `
+                        <div><strong>${deviceInfo.name}</strong></div>
+                        <div>Model: ${deviceInfo.model || 'N/A'}</div>
+                        <div>Brand: ${deviceInfo.brand || 'N/A'}</div>
+                        <div>Serial: ${deviceInfo.serial}</div>
+                        <div>Barcode: ${deviceInfo.barcode}</div>
+                    `;
+
+                        container.appendChild(infoDiv);
+                        preview.appendChild(container);
+
+                    } catch (error) {
+                        console.error('Barcode generation failed:', error);
                     }
-
-                    console.log('Generating barcode for:', barcode);
-                    JsBarcode(canvas, barcode, {
-                        format: "CODE128",
-                        lineColor: "#000",
-                        width: 2,
-                        height: 50,
-                        displayValue: true
-                    });
-
-                    // Convert canvas to image and display
-                    const barcodePreview = document.getElementById('barcodePreview');
-                    if (!barcodePreview) {
-                        console.error('Barcode preview element not found!');
-                        return;
-                    }
-
-                    barcodePreview.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = canvas.toDataURL('image/png');
-                    img.alt = 'Barcode';
-                    img.style.height = '50px';
-                    barcodePreview.appendChild(img);
-
-                    canvas.style.display = 'none';
-                } catch (error) {
-                    console.error('Barcode generation error:', error);
-                }
+                });
             });
-        });
-    </script>
-@endpush
+        </script>
+    @endpush
 </div>

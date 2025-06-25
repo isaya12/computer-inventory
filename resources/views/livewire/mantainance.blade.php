@@ -163,7 +163,7 @@
                                     <p class="form-control-plaintext">
                                         <span
                                             class="badge bg-{{ $this->getTypeColor($currentTask->maintenance_type) }}">
-                                            {{ $maintenanceTypes[$currentTask->maintenance_type] ?? $currentTask->maintenance_type }}
+                                            {{ $maintenanceTypes[$currentTask->type] ?? $currentTask->type }}
                                         </span>
                                     </p>
                                 </div>
@@ -182,20 +182,45 @@
                                 <div class="mb-3">
                                     <label class="form-label">Scheduled Date</label>
                                     <p class="form-control-plaintext">
-                                        {{-- {{ $currentTask->scheduled_date->format('M d, Y h:i A') }}</p> --}}
+                                        {{ $currentTask->start_time }}</p>
                                 </div>
-                                @if ($currentTask->start_date)
                                     <div class="mb-3">
-                                        <label class="form-label">Start Date</label>
+                                        <label class="form-label">End Date</label>
                                         <p class="form-control-plaintext">
-                                            {{ $currentTask->start_time>format('M d, Y h:i A') }}</p>
+                                            {{ $currentTask->end_time }}</p>
                                     </div>
-                                @endif
-                                @if ($currentTask->completion_date)
+                                    @if ($currentTask->start_time && $currentTask->end_time)
                                     <div class="mb-3">
-                                        <label class="form-label">Completion Date</label>
+                                        <label class="form-label">Maintenance Duration</label>
                                         <p class="form-control-plaintext">
-                                            {{ $currentTask->completion_date->format('M d, Y h:i A') }}</p>
+                                            @php
+                                                $start = \Carbon\Carbon::parse($currentTask->start_time);
+                                                $end = \Carbon\Carbon::parse($currentTask->end_time);
+                                                $duration = $start->diff($end);
+                                            @endphp
+
+                                            @if ($duration->d > 0)
+                                                {{ $duration->d }} day{{ $duration->d > 1 ? 's' : '' }}
+                                            @endif
+
+                                            @if ($duration->h > 0)
+                                                {{ $duration->h }} hour{{ $duration->h > 1 ? 's' : '' }}
+                                            @endif
+
+                                            @if ($duration->i > 0 && $duration->d == 0)
+                                                {{ $duration->i }} minute{{ $duration->i > 1 ? 's' : '' }}
+                                            @endif
+
+                                            ({{ $start->format('M d, Y') }} to {{ $end->format('M d, Y') }})
+                                        </p>
+                                    </div>
+                                @elseif ($currentTask->start_time)
+                                    <div class="mb-3">
+                                        <label class="form-label">Started On</label>
+                                        <p class="form-control-plaintext">
+                                            {{ $currentTask->start_time->format('M d, Y h:i A') }}
+                                            (In progress)
+                                        </p>
                                     </div>
                                 @endif
                             </div>
@@ -241,7 +266,7 @@
                                                 @foreach ($currentTask->notifications as $notification)
                                                     <tr>
                                                         <td>{{ ucfirst($notification->type) }}</td>
-                                                        <td>{{ $notification->send_at->format('M d, Y h:i A') }}</td>
+                                                        <td>{{ $notification->send_at }}</td>
                                                         <td>
                                                             <span
                                                                 class="badge bg-{{ $notification->is_sent ? 'success' : 'warning' }}">

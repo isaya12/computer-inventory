@@ -111,7 +111,7 @@
                                          class="img-fluid rounded mb-3"
                                          style="max-height: 300px;">
                                 @else
-                                    <img src="{{ asset('assets/img/product/product17.jpg') }}"
+                                    <img src="{{ asset('assets/img/product/devices.webp') }}"
                                          alt="Default device image"
                                          class="img-fluid rounded mb-3"
                                          style="max-height: 300px;">
@@ -204,7 +204,7 @@
                                             <option value="">Select Location</option>
                                             @foreach($locations as $location)
                                                 <option value="{{ $location->id }}" {{ $location->id == $device->location_id ? 'selected' : '' }}>
-                                                    {{ $location->name }}
+                                                    {{ $location->name }} block {{ $location->block }}
                                                 </option>
                                             @endforeach
                                         </select>

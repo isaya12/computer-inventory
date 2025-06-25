@@ -13,11 +13,13 @@ class Device extends Component
     public $search = '';
     public $categoryFilter = '';
     public $statusFilter = '';
-    public $sortField = 'name'; // Changed from device_name to name
+    public $sortField = 'name'; 
     public $sortDirection = 'asc';
     public $assignDeviceId = null;
     public $userId = null;
     public $showAssignModal = false;
+    public $showDeleteModal = false;
+    public $deviceIdToDelete = null;
 
 
     public function assignDevice($deviceId)
@@ -85,9 +87,16 @@ class Device extends Component
         ]);
     }
 
-    public function deleteDevice($id)
+    public function confirmDelete($deviceId)
     {
-        Device::find($id)->delete();
+        $this->deviceIdToDelete = $deviceId;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteDevice()
+    {
+        DeviceModel::find($this->deviceIdToDelete)->delete();
+        $this->showDeleteModal = false;
         session()->flash('message', 'Device deleted successfully.');
     }
 

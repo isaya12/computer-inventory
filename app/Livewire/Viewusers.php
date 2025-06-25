@@ -18,6 +18,18 @@ class Viewusers extends Component
     public $statusFilter = '';
     public $showDeleteModal = false;
     public $userIdToDelete = null;
+    public $showAddModal = false;
+    public $newUser = [
+    'first_name' => '',
+    'last_name' => '',
+    'email' => '',
+    'phone' => '',
+    'password' => '',
+    'password_confirmation' => '',
+    'role' => 'staff',
+    'image' => null
+];
+public $addUserPhoto;
 
     public function setStatusFilter($status)
     {
@@ -108,6 +120,7 @@ class Viewusers extends Component
     protected $listeners = [
         'showDeleteModal' => 'showDeleteModal',
         'hideDeleteModal' => 'hideDeleteModal',
+        'showAddModal' => 'showAddUserModal',
     ];
 
     public function showDeleteModal()
@@ -119,5 +132,50 @@ class Viewusers extends Component
     {
         $this->showDeleteModal = false;
     }
+
+
+    public function showAddUserModal()
+{
+    $this->reset(['newUser', 'addUserPhoto']);
+    $this->showAddModal = true;
+}
+
+public function addUser()
+{
+    $this->validate([
+        'newUser.first_name' => 'required|string|max:255',
+        'newUser.last_name' => 'required|string|max:255',
+        'newUser.email' => 'required|email|unique:users,email',
+        'newUser.phone' => 'required|string|max:20',
+        'newUser.password' => 'required|string|min:8|confirmed',
+        'newUser.role' => 'required|in:admin,staff,it-person',
+        'addUserPhoto' => 'nullable|image|max:2048',
+    ]);
+
+    try {
+        $userData = [
+            'first_name' => $this->newUser['first_name'],
+            'last_name' => $this->newUser['last_name'],
+            'email' => $this->newUser['email'],
+            'phone' => $this->newUser['phone'],
+            'password' => Hash::make($this->newUser['password']),
+            'role' => $this->newUser['role'],
+            'is_active' => true,
+            'is_banned' => false,
+        ];
+
+        if ($this->addUserPhoto) {
+            $userData['image'] = $this->addUserPhoto->store('profile-photos', 'public');
+        }
+
+        User::create($userData);
+
+        $this->showAddModal = false;
+        session()->flash('message', 'User added successfully.');
+        $this->resetPage();
+    } catch (\Exception $e) {
+        session()->flash('error', 'Error adding user: ' . $e->getMessage());
+    }
+}
 
 }

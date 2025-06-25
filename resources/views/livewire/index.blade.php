@@ -50,50 +50,53 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-sm-6 col-12 d-flex">
-                    <div class="dash-count">
-                        <div class="dash-counts">
-                            <h4>{{ $usersCount ?? '0' }}</h4>
-                            <h5>User</h5>
-                        </div>
-                        <div class="dash-imgs">
-                            <i data-feather="user"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12 d-flex">
-                    <div class="dash-count das1">
-                        <div class="dash-counts">
-                            <h4>{{ $staffCount ?? '0' }}</h4>
-                            <h5>Staff</h5>
-                        </div>
-                        <div class="dash-imgs">
-                            <i data-feather="user-check"></i>
+
+                @if (auth()->user()->role == 'admin')
+                    <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                        <div class="dash-count">
+                            <div class="dash-counts">
+                                <h4>{{ $usersCount ?? '0' }}</h4>
+                                <h5>User</h5>
+                            </div>
+                            <div class="dash-imgs">
+                                <i data-feather="user"></i>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12 d-flex">
-                    <div class="dash-count das2">
-                        <div class="dash-counts">
-                            <h4>100</h4>
-                            <h5>available device</h5>
-                        </div>
-                        <div class="dash-imgs">
-                            <i data-feather="file-text"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12 d-flex">
-                    <div class="dash-count das3">
-                        <div class="dash-counts">
-                            <h4>105</h4>
-                            <h5>Device assigned</h5>
-                        </div>
-                        <div class="dash-imgs">
-                            <i data-feather="file"></i>
+                    <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                        <div class="dash-count das1">
+                            <div class="dash-counts">
+                                <h4>{{ $staffCount ?? '0' }}</h4>
+                                <h5>Staff</h5>
+                            </div>
+                            <div class="dash-imgs">
+                                <i data-feather="user-check"></i>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                        <div class="dash-count das2">
+                            <div class="dash-counts">
+                                <h4>100</h4>
+                                <h5>available device</h5>
+                            </div>
+                            <div class="dash-imgs">
+                                <i data-feather="file-text"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-sm-6 col-12 d-flex">
+                        <div class="dash-count das3">
+                            <div class="dash-counts">
+                                <h4>105</h4>
+                                <h5>Device assigned</h5>
+                            </div>
+                            <div class="dash-imgs">
+                                <i data-feather="file"></i>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         @endif
         @if (auth()->user()->role == 'admin')
@@ -249,7 +252,7 @@
             </div>
         @endif
 
-        @if (auth()->user()->role=='staff')
+        @if (auth()->user()->role == 'staff')
             <div class="row">
                 <div class="col-lg-12 col-sm-12 col-12">
                     <div class="dash-widget">
@@ -257,8 +260,8 @@
                             <span><i class="fas fa-laptop-code fa-2x" style="color: #4e73df;"></i></span>
                         </div>
                         <div class="dash-widgetcontent">
-                            <h5><span class="counters">Hello, {{auth()->user()->first_name}}</span></h5>
-                            
+                            <h5><span class="counters">Hello, {{ auth()->user()->first_name }}</span></h5>
+
                         </div>
                     </div>
                 </div>

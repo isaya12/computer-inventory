@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\UserNotification;
 use Illuminate\Support\Facades\Hash;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class Userdetails extends Component
 {
@@ -152,24 +153,25 @@ public function unbanUser()
     }
 
     public function updateProfilePhoto()
-{
-    $this->validate(['photo' => 'image|max:2048']);
+    {
+        $this->validate(['photo' => 'image|max:2048']);
 
-    try {
-        if ($this->user->image) {
-            Storage::delete($this->user->image);
+        try {
+            if ($this->user->image) {
+                Storage::delete($this->user->image);
+            }
+
+            $filename = $this->photo->store('profile-photos', 'public');
+            $this->user->update(['image' => $filename]);
+
+            session()->flash('message', 'Profile photo updated successfully.');
+            $this->user->refresh();
+            $this->photo = null; // Clear the photo after upload
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to update photo: '.$e->getMessage());
         }
-
-        $filename = $this->photo->store('profile-photos', 'public');
-        $this->user->update(['image' => $filename]);
-
-        $this->dispatch('close-modal', ['id' => 'uploadPhotoModal']);
-        session()->flash('message', 'Profile photo updated successfully.');
-        $this->user->refresh();
-    } catch (\Exception $e) {
-        session()->flash('error', 'Failed to update photo: '.$e->getMessage());
     }
-}
+
 
     public function cancelEdit()
     {

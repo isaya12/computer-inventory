@@ -37,13 +37,13 @@ class Mantainance extends Component
 
     protected $rules = [
         'title' => 'required|string|max:255',
-        'maintenance_type' => 'required|in:preventive, corrective, upgrade,other',
+        'maintenance_type' => 'required|in:preventive,corrective,upgrade,other',
         'description' => 'required|string',
         'status' => 'required|in:pending,in_progress,completed,canceled',
         'start_date' => 'nullable|date',
-        'completion_date' => 'nullable|date',
+        'completion_date' => 'nullable|date|after_or_equal:start_date',
         'notificationType' => 'required|in:reminder,start,end,cancellation',
-    'notificationSendAt' => 'required|date|after_or_equal:now',
+        'notificationSendAt' => 'required|date|after_or_equal:now',
     ];
 
     public function mount()
@@ -105,7 +105,7 @@ class Mantainance extends Component
         'end_time' => $this->completion_date,
         'created_by' => Auth::id(),
     ];
-    dd($data);
+    // dd($data);
     // If creating new task and status is 'in_progress', set start_time to now
     if (!$this->currentTask && $this->status === 'in_progress') {
         $data['start_time'] = now();
@@ -128,7 +128,6 @@ class Mantainance extends Component
     $this->dispatch('hide-modal');
     session()->flash('message', $message);
 }
-
     public function viewTask($taskId)
     {
         $this->currentTask = MaintenanceSchedule::find($taskId);
@@ -139,11 +138,11 @@ class Mantainance extends Component
     {
         $this->currentTask = MaintenanceSchedule::find($taskId);
         $this->title = $this->currentTask->title;
-        $this->maintenance_type = $this->currentTask->maintenance_type;
+        $this->maintenance_type = $this->currentTask->type;
         $this->description = $this->currentTask->description;
         $this->status = $this->currentTask->status;
-        $this->start_date = $this->currentTask->start_date?->format('Y-m-d\TH:i');
-        $this->completion_date = $this->currentTask->completion_date?->format('Y-m-d\TH:i');
+        $this->start_date = $this->currentTask->start_time?->format('Y-m-d\TH:i');
+        $this->completion_date = $this->currentTask->end_time?->format('Y-m-d\TH:i');
         $this->dispatch('show-edit-modal');
     }
 
@@ -152,7 +151,7 @@ class Mantainance extends Component
         $task = MaintenanceSchedule::find($taskId);
         $task->update([
             'status' => 'in_progress',
-            'start_date' => now()
+            'start_time' => now()
         ]);
         session()->flash('message', 'Maintenance task started!');
     }
@@ -162,7 +161,7 @@ class Mantainance extends Component
         $task = MaintenanceSchedule::find($taskId);
         $task->update([
             'status' => 'completed',
-            'completion_date' => now(),
+            'end_time' => now(),
         ]);
         session()->flash('message', 'Maintenance task completed!');
     }
@@ -170,7 +169,7 @@ class Mantainance extends Component
     public function cancelTask($taskId)
     {
         $task = MaintenanceSchedule::find($taskId);
-        $task->update(['status' => 'cancelled']);
+        $task->update(['status' => 'canceled']); // Fixed typo from 'cancelled' to 'canceled'
         session()->flash('message', 'Maintenance task cancelled!');
     }
 
@@ -233,17 +232,39 @@ public function scheduleNotification()
         'notificationSendAt' => 'required|date|after_or_equal:now',
     ]);
 
-    if ($this->currentTask) {
-        MaintenanceNotification::create([
+    if (!$this->currentTask) {
+        session()->flash('error', 'No task selected for notification');
+        return;
+    }
+
+    try {
+        $notification = MaintenanceNotification::create([
             'schedule_id' => $this->currentTask->id,
             'type' => $this->notificationType,
             'scheduled_at' => $this->notificationSendAt,
             'is_sent' => false,
+            'message' => $this->getNotificationMessage($this->notificationType, $this->currentTask),
         ]);
 
-        session()->flash('notificationMessage', 'Notification scheduled successfully!');
-        $this->showNotificationModal = false;
+        session()->flash('message', 'Notification scheduled successfully!');
+        $this->dispatchBrowserEvent('closeNotificationModal');
+        $this->reset(['notificationType', 'notificationSendAt']);
+
+    } catch (\Exception $e) {
+        session()->flash('error', 'Failed to schedule notification: '.$e->getMessage());
     }
+}
+
+protected function getNotificationMessage($type, $task)
+{
+    return match($type) {
+        'reminder' => "Reminder: Maintenance task '{$task->title}' is scheduled for " .
+                     $task->start_time->format('M j, Y H:i'),
+        'start' => "Maintenance task '{$task->title}' has started",
+        'end' => "Maintenance task '{$task->title}' has been completed",
+        'cancellation' => "Maintenance task '{$task->title}' has been cancelled",
+        default => "Notification about maintenance task '{$task->title}'"
+    };
 }
 
 public function deleteNotification($notificationId)
